@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ScoreRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ScoreRepository::class)]
 class Score
@@ -17,6 +18,14 @@ class Score
     private ?float $score = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Type('string')]
+    #[Assert\Length(
+        min: 1,
+        max: 255,
+        minMessage: 'Your search term must be at least {{ limit }} characters long',
+        maxMessage: 'Your search term must be maximum {{ limit }} characters long'
+    )]
     private ?string $term = null;
 
     #[ORM\Column]

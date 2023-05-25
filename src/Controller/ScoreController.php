@@ -4,19 +4,43 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Entity\Score;
 use App\Service\ApiScoreService;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 /**
  * SearchController class.
  */
 class ScoreController extends AbstractController
 {
+    /**
+     * @var EntityManagerInterface
+     */
+    protected $em;
+
+    /**
+     * @var ValidatorInterface
+     */
+    protected $validator;
+
+    /**
+     * ScoreController constructor.
+     * @param EntityManagerInterface $em
+     * @param ValidatorInterface $validator
+     */
+    public function __construct(EntityManagerInterface $em, ValidatorInterface $validator)
+    {
+        $this->em = $em;
+        $this->validator = $validator;
+    }
+
     #[Route('/score', name: 'score', methods: ['GET'])]
-    public function search(Request $request, EntityManagerInterface $em/*, ApiScoreService $apiScoreService*/)
+    public function search(Request $request /*, ApiScoreService $apiScoreService*/): Response
     {
         $term = $request->get('term');
 
@@ -24,7 +48,7 @@ class ScoreController extends AbstractController
             return $this->render('error/score-term-missing-error.html.twig');
         }
 
-        $scoreFromDB = $em->getRepository(Score::class)->findOneBy(['term' => $term]);
+        $scoreFromDB = $this->em->getRepository(Score::class)->findOneBy(['term' => $term]);
 
         if ($scoreFromDB) {
             $data = [
@@ -33,8 +57,9 @@ class ScoreController extends AbstractController
                 'created_at' => $scoreFromDB->getCreatedAt(),
             ];
 
-            echo json_encode($data);
-            die;
+            return $this->render('score/index.html.twig', [
+                'data' => $data,
+            ]);
         }
 
         // $apiStatsData = $apiScoreService->getApiStatsData();
@@ -47,19 +72,39 @@ class ScoreController extends AbstractController
         $score->setTerm($term);
         $score->setCreatedAt($dateTimeObj);
 
+        $errors = $this->validateSearchTerm($score);
+
+        if (count($errors) > 0) {
+            return $this->render('error/score-term-validation-error.html.twig', [
+                'errors' => $errors,
+            ]);
+        }
+
         try {
-            $em->persist($score);
-            $em->flush();
+            $this->em->persist($score);
+            $this->em->flush();
         } catch (\RuntimeException $e) {
             // log error to error log in db
             return $this->render('error/score-term-db-error.html.twig');
         }
 
-        echo json_encode([
-            'term' => $term,
-            'score' => 3.33,
+        $data = [
+            'term'       => $term,
+            'score'      => 3.33,
             'created_at' => $dateTimeObj,
+        ];
+
+        return $this->render('score/index.html.twig', [
+            'data' => $data,
         ]);
-        die;
+    }
+
+    /**
+     * @param Score $score
+     * @return ConstraintViolationList
+     */
+    private function validateSearchTerm(Score $score): ConstraintViolationList
+    {
+        return $this->validator->validate($score);
     }
 }

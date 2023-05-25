@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="wrapper">
+        <div class="title">
+            {% if (data.score >= 0) %}
+                <h1 style="color:green">Rocks</h1>
+            {% else %}
+                <h1 style="color:red">Sucks</h1>
+            {% endif %}
+        </div>
+        <div class="json-response">
+            {{ data|json_encode(constant('JSON_PRETTY_PRINT')) }}
+        </div>
+    </div>
+{% endblock %}
