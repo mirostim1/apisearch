@@ -18,11 +18,6 @@ framework:
     php_errors:
         log: true
 
-# By adding new parameter you can add more API providers for serarch.
-# Define new API endpoint for new provider in .env and add it here in array
-parameters:
-    api_providers: ["%env(GITHUB_API_ENDPOINT)%"]
-
 when@test:
     framework:
         test: true

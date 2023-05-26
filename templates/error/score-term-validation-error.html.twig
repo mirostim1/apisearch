@@ -6,10 +6,12 @@
         <div class="error-description">
             It seems that you made some error while providing search term.<br />
 
-            We found error in your term:<br /><br />
-            {% for error in errors %}
-                <div>{{ error.message }}</div>
-            {% endfor %}
+            We found error(s) in your term:<br /><br />
+            <ul>
+                {% for error in errors %}
+                    <div><li>{{ error.message }}</li></div>
+                {% endfor %}
+            </ul>
 
             <br /><br />
             Here are the rules for when specifying search term:<br />

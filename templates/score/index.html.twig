@@ -10,7 +10,7 @@
             {% endif %}
         </div>
         <div class="json-response">
-            {{ data|json_encode(constant('JSON_PRETTY_PRINT')) }}
+            {{ data|json_encode() }}
         </div>
     </div>
 {% endblock %}

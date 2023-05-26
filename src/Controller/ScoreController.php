@@ -41,9 +41,15 @@ class ScoreController extends AbstractController
     }
 
     #[Route('/score', name: 'score', methods: ['GET'])]
-    public function search(Request $request /*, ApiScoreService $apiScoreService*/): Response
+    public function search(Request $request, ApiScoreService $apiScoreService): Response
     {
         $term = $request->get('term');
+        $options = [
+            'sort'     => $request->get('sort'),
+            'order'    => $request->get('order', 'desc'),
+            'per_page' => $request->get('per_page', 30),
+            'page'     => $request->get('page', 1),
+        ];
 
         if (!$term) {
             return $this->render('error/score-term-missing-error.html.twig');
@@ -63,13 +69,12 @@ class ScoreController extends AbstractController
             ]);
         }
 
-        // $apiStatsData = $apiScoreService->getApiStatsData();
+        $apiScoreData = $apiScoreService->getScoreFromProviders($term, $options);
 
         $dateTimeObj = new \DateTimeImmutable();
 
         $score = new Score();
-        // $score->setScore($apiStatsData['score']);
-        $score->setScore(3.33);
+        $score->setScore($apiScoreData);
         $score->setTerm($term);
         $score->setCreatedAt($dateTimeObj);
 
@@ -91,7 +96,7 @@ class ScoreController extends AbstractController
 
         $data = [
             'term'       => $term,
-            'score'      => 3.33,
+            'score'      => $apiScoreData,
             'created_at' => $dateTimeObj,
         ];
 
