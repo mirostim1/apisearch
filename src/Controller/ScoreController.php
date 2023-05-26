@@ -30,6 +30,7 @@ class ScoreController extends AbstractController
 
     /**
      * ScoreController constructor.
+     *
      * @param EntityManagerInterface $em
      * @param ValidatorInterface $validator
      */
