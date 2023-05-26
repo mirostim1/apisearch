@@ -31,12 +31,12 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "ApiSearch\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "App\\Tests\\": "tests/"
+            "ApiSearch\\Tests\\": "tests/"
         }
     },
     "replace": {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace ApiSearch\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use App\Entity\Score;
-use App\Service\ApiScoreService;
+use ApiSearch\Entity\Score;
+use ApiSearch\Service\ApiScoreService;
 use Symfony\Component\Validator\ConstraintViolationList;
 
 /**

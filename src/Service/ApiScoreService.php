@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace ApiSearch\Service;
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\AbstractServiceConfigurator;
 

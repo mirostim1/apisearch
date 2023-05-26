@@ -1,9 +1,9 @@
 controllers:
   resource:
     path: ../../src/Controller/
-    namespace: App\Controller
+    namespace: ApiSearch\Controller
   type: attribute
 
 kernel:
-  resource: App\Kernel
+  resource: ApiSearch\Kernel
   type: attribute

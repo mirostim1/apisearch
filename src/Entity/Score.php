@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace ApiSearch\Entity;
 
-use App\Repository\ScoreRepository;
+use ApiSearch\Repository\ScoreRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 

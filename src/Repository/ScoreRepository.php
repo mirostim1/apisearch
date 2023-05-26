@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace ApiSearch\Repository;
 
-use App\Entity\Score;
+use ApiSearch\Entity\Score;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
