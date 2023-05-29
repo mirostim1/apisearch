@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ApiSearch\Service;
 
 use GuzzleHttp\Client;
@@ -11,7 +13,7 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class GithubApiService {
 
-    private const GITHUB_TOKEN = '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';
+    // private const GITHUB_TOKEN = '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';
 
     private const SORT_OPTIONS = [
         'comments',
@@ -33,10 +35,10 @@ class GithubApiService {
      * @param string $term
      * @param string $endpoint
      * @param array $options
-     * @return array
+     * @return float
      * @throws GuzzleException
      */
-    public function getTermScoreFromApi(string $term, string $endpoint, array $options = []): array
+    public function getTermScoreFromApi(string $term, string $endpoint, array $options = []): float
     {
         $apiData = $this->getApiData($term, $endpoint, $options);
 
@@ -60,22 +62,17 @@ class GithubApiService {
 
         $headers = [
             'Accept'               => 'application/vnd.github+json',
-            'Authorization'        => 'Bearer ' . self::GITHUB_TOKEN,
+            // 'Authorization'     => 'Bearer ' . self::GITHUB_TOKEN,
             'X-GitHub-Api-Version' => '2022-11-28'
         ];
 
-        try {
-            $result = $client->request(
-                'GET',
-                $uri,
-                [
-                    'headers' => $headers
-                ]
-            );
-        } catch (\Exception $e) {
-            # log->error(); monolog
-            dd($e->getMessage());
-        }
+        $result = $client->request(
+            'GET',
+            $uri,
+            [
+                'headers' => $headers
+            ]
+        );
 
         if ($result) {
             $apiData = json_decode($result->getBody()->getContents(), true);
@@ -97,6 +94,10 @@ class GithubApiService {
             $reactionsSum += $item['reactions']['+1'];
             $reactionsSum -= $item['reactions']['-1'];
             $totalCountSum += $item['reactions']['total_count'];
+        }
+
+        if ($totalCountSum === 0) {
+            $totalCountSum = 1;
         }
 
         return (float) number_format(

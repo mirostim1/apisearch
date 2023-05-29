@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ApiSearch\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Doctrine\ORM\EntityManagerInterface;
 use ApiSearch\Entity\Score;
 use ApiSearch\Service\ApiScoreService;
-use Symfony\Component\Validator\ConstraintViolationList;
+use DateTimeImmutable;
+use Exception;
 
 /**
  * SearchController class.
@@ -40,10 +43,11 @@ class ScoreController extends AbstractController
         $this->validator = $validator;
     }
 
-    #[Route('/score', name: 'score', methods: ['GET'])]
-    public function search(Request $request, ApiScoreService $apiScoreService): Response
+    #[Route('/api/v1/score', name: 'api_score_v1', methods: ['GET'])]
+    public function scoreV1(Request $request, ApiScoreService $apiScoreService): JsonResponse
     {
         $term = $request->get('term');
+
         $options = [
             'sort'     => $request->get('sort'),
             'order'    => $request->get('order', 'desc'),
@@ -52,57 +56,147 @@ class ScoreController extends AbstractController
         ];
 
         if (!$term) {
-            return $this->render('error/score-term-missing-error.html.twig');
+            $data = [
+                'status' => 'error',
+                'code' => 400,
+                'errors' => ['Search term must be provided, it is a required parameter.'],
+            ];
+
+            return $this->formatJsonResponse(
+                $data,
+                400,
+                [
+                    'headers' => ['Content-Type: application/json;charset=utf-8']
+                ]
+            );
         }
 
         $scoreFromDB = $this->em->getRepository(Score::class)->findOneBy(['term' => $term]);
 
         if ($scoreFromDB) {
             $data = [
+                'status'     => 'success',
+                'code'       => 200,
                 'term'       => $scoreFromDB->getTerm(),
                 'score'      => $scoreFromDB->getScore(),
-                'created_at' => $scoreFromDB->getCreatedAt(),
+                'createdAt'  => $scoreFromDB->getCreatedAt(),
             ];
 
-            return $this->render('score/index.html.twig', [
-                'data' => $data,
-            ]);
+            return $this->formatJsonResponse(
+                $data,
+                200,
+                [
+                    'headers' => ['Content-Type: application/json;charset=utf-8']
+                ]
+            );
         }
 
-        $apiScoreData = $apiScoreService->getScoreFromProviders($term, $options);
+        try {
+            $apiScoreData = $apiScoreService->getScoreFromProviders($term, $options);
+        } catch (Exception $e) {
+            $data = [
+                'status' => 'error',
+                'code' => $e->getCode(),
+                'errors' => [$e->getMessage()],
+            ];
 
-        $dateTimeObj = new \DateTimeImmutable();
+            return $this->formatJsonResponse(
+                $data,
+                400,
+                [
+                    'headers' => ['Content-Type: application/json;charset=utf-8']
+                ]
+            );
+        }
+
+        $totalScore = 0;
+        foreach ($apiScoreData as $apiScore) {
+            $totalScore += $apiScore;
+        }
+
+        $finalScore = (float) number_format($totalScore / count($apiScoreData), 2);
+
+        $dateTimeObj = new DateTimeImmutable();
 
         $score = new Score();
-        $score->setScore($apiScoreData);
+        $score->setScore($finalScore);
         $score->setTerm($term);
         $score->setCreatedAt($dateTimeObj);
 
         $errors = $this->validateSearchTerm($score);
 
         if (count($errors) > 0) {
-            return $this->render('error/score-term-validation-error.html.twig', [
-                'errors' => $errors,
-            ]);
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
+            $data = [
+                'status' => 'error',
+                'code'   => 400,
+                'errors' => $errorMessages,
+            ];
+
+            return $this->formatJsonResponse(
+                $data,
+                400,
+                [
+                    'headers' => ['Content-Type: application/json;charset=utf-8']
+                ]
+            );
         }
 
         try {
             $this->em->persist($score);
             $this->em->flush();
-        } catch (\RuntimeException $e) {
-            // log error to error log in db
-            return $this->render('error/score-term-db-error.html.twig');
+        } catch (Exception $e) {
+            $data = [
+                'status' => 'error',
+                'code'   => $e->getCode(),
+                'errors' => [$e->getMessage()],
+            ];
+
+            return $this->formatJsonResponse(
+                $data,
+                400,
+                [
+                    'headers' => ['Content-Type: application/json;charset=utf-8']
+                ]
+            );
         }
 
         $data = [
+            'status'     => 'success',
+            'code'       => 200,
             'term'       => $term,
-            'score'      => $apiScoreData,
-            'created_at' => $dateTimeObj,
+            'score'      => $finalScore,
+            'createdAt'  => $dateTimeObj,
         ];
 
-        return $this->render('score/index.html.twig', [
-            'data' => $data,
-        ]);
+        return $this->formatJsonResponse(
+            $data,
+            200,
+            [
+                'headers' => 'Content-Type: application/json;charset=utf-8',
+            ]
+        );
+    }
+
+    /**
+     * @param array $data
+     * @param int $code
+     * @param array $headers
+     * @return JsonResponse
+     */
+    private function formatJsonResponse(array $data, int $code, array $headers): JsonResponse
+    {
+        $response = new JsonResponse(
+            $data,
+            $code,
+            $headers
+        );
+
+        return $response->setEncodingOptions($response->getEncodingOptions() | JSON_PRETTY_PRINT);
     }
 
     /**

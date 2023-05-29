@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ApiSearch\Service;
 
 use GuzzleHttp\Exception\GuzzleException;
@@ -10,6 +12,10 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class ApiScoreService
 {
+    private const GITHUB = 'github';
+
+    // private const TWITTER = 'twitter';
+
     /**
      * @var array
      */
@@ -32,7 +38,7 @@ class ApiScoreService
 
         foreach ($this->enabledApiProviders as $apiProviderData) {
             switch (key($apiProviderData)) {
-                case 'github':
+                case self::GITHUB:
                     $githubService = new GithubApiService();
                     $dataFromProviders[key($apiProviderData)] = $githubService->getTermScoreFromApi(
                         $term,
@@ -40,10 +46,11 @@ class ApiScoreService
                         $options
                     );
                     break;
-                /* case 'twitter':
+                /* case self::TWITTER:
                     $twitterService = new TwitterApiService();
                     $twitterData = $twitterService->getTermScoreFromApi($term, $endpoint, $options);
-                    break; */
+                    break;
+                */
                 default:
                     break;
             }
