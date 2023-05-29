@@ -74,11 +74,13 @@ class GithubApiService {
             ]
         );
 
+        $apiData = [];
+
         if ($result) {
             $apiData = json_decode($result->getBody()->getContents(), true);
         }
 
-        return $apiData ?? [];
+        return $apiData;
     }
 
     /**

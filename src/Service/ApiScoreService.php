@@ -42,7 +42,7 @@ class ApiScoreService
                     $githubService = new GithubApiService();
                     $dataFromProviders[key($apiProviderData)] = $githubService->getTermScoreFromApi(
                         $term,
-                        $apiProviderData[key($apiProviderData)],
+                        $apiProviderData[key($apiProviderData)], // API endpoint for GitHub from configuration
                         $options
                     );
                     break;
