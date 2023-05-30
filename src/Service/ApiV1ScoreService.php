@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace ApiSearch\Service;
 
 use GuzzleHttp\Exception\GuzzleException;
+use ApiSearch\Interfaces\ApiV1ScoreInterface;
 
 /**
  * Class ApiV1ScoreService
  * @package ApiSearch\Service
  */
-class ApiV1ScoreService
+class ApiV1ScoreService implements ApiV1ScoreInterface
 {
     private const GITHUB = 'github';
 

@@ -6,13 +6,14 @@ namespace ApiSearch\Service;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use ApiSearch\Interfaces\ApiV2ScoreInterface;
 use Exception;
 
 /**
  * Class ApiV2ScoreService
  * @package ApiSearch\Service
  */
-class ApiV2ScoreService
+class ApiV2ScoreService implements ApiV2ScoreInterface
 {
     private const GITHUB = 'github';
 

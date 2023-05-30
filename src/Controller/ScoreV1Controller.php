@@ -10,15 +10,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Art4\JsonApiClient\Exception\InputException;
-use Art4\JsonApiClient\Exception\ValidationException;
-use Art4\JsonApiClient\Helper\Parser;
 use ApiSearch\Entity\Score;
 use ApiSearch\Service\ApiV1ScoreService;
 use DateTimeImmutable;
 use Exception;
 use ApiSearch\Traits\ScoreTrait;
 use ApiSearch\Traits\FormatJsonTrait;
+use GuzzleHttp\Exception\GuzzleException;
+use OpenApi\Annotations as OA;
 
 /**
  * SearchController class.
@@ -50,6 +49,85 @@ class ScoreV1Controller extends AbstractController
     }
 
     #[Route('/api/v1/score', name: 'api_score_v1', methods: ['GET'])]
+    /**
+     * @OA\Get(
+     *     description="ApiSearch endpoint for fetching score for given search term.<br/><br/>
+           Example of request uri: https://example.com/api/v1/score?<strong>term=php&sort=reactions-+1&order=desc&per_page=50&page=1</strong>"
+     * )
+     * @OA\Response(
+     *      response="200",
+     *      description="Ok",
+     *      content={
+     *          @OA\MediaType(
+     *              mediaType="application/vnd.api+json",
+     *              @OA\Schema(
+     *                  @OA\Property(
+     *                      property="type",
+     *                      type="string",
+     *                      description="Type respresents data entity of object."
+     *                  ),
+     *                  @OA\Property(
+     *                      property="id",
+     *                      type="integer",
+     *                      description="Id represents unique object id."
+     *                  ),
+     *                  @OA\Property(
+     *                      property="term",
+     *                      type="string",
+     *                      description="Term represents search term."
+     *                  ),
+     *                  @OA\Property(
+     *                      property="score",
+     *                      type="float",
+     *                      description="Id represents unique object id."
+     *                  ),
+     *                  @OA\Property(
+     *                      property="createdAt",
+     *                      type="datetime",
+     *                      description="CreatedAt represents date/time of object creation.",
+     *
+     *                  )
+     *              )
+     *          )
+     *      }
+     * )
+     * @OA\Parameter(
+     *     name="term",
+     *     in="query",
+     *     description="Parameter for search term and retrieve term score (required).",
+     *     @OA\Schema(type="string")
+     * )
+     * @OA\Parameter(
+     *     name="sort",
+     *     in="query",
+     *     description="Sort by one of the options (optional). Default one is best match.",
+     *     @OA\Schema(type="string")
+     * )
+     * @OA\Parameter(
+     *     name="order",
+     *     in="query",
+     *     description="Order of search (optional). Default one is: desc.",
+     *     @OA\Schema(type="string")
+     * )
+     * @OA\Parameter(
+     *     name="per_page",
+     *     in="query",
+     *     description="Items per page in search (optional). Maximum is 100 and default is 30.",
+     *     @OA\Schema(type="integer")
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="Page of search results (optional). Default is 1.",
+     *     @OA\Schema(type="integer")
+     * )
+     *
+     *
+     * @param Request $request
+     * @param ApiV1ScoreService $apiScoreService
+     * @return JsonResponse
+     * @throws GuzzleException
+     */
     public function scoreV1(Request $request, ApiV1ScoreService $apiScoreService): JsonResponse
     {
         $term = $request->get('term');
@@ -71,7 +149,7 @@ class ScoreV1Controller extends AbstractController
                     ]
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'v1',
                 ],
             ];
 
@@ -92,7 +170,7 @@ class ScoreV1Controller extends AbstractController
                     ],
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'v1',
                 ],
             ];
 
@@ -111,7 +189,7 @@ class ScoreV1Controller extends AbstractController
                     ],
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'v1',
                 ],
             ];
 
@@ -137,7 +215,7 @@ class ScoreV1Controller extends AbstractController
                     'title'  => $e->getMessage(),
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'v1',
                 ],
             ];
 
@@ -155,7 +233,7 @@ class ScoreV1Controller extends AbstractController
                 ],
             ],
             'meta' => [
-                'apiVersion' => 'V1',
+                'apiVersion' => 'v1',
             ],
         ];
 
