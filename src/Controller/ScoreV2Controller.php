@@ -10,20 +10,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Art4\JsonApiClient\Exception\InputException;
-use Art4\JsonApiClient\Exception\ValidationException;
-use Art4\JsonApiClient\Helper\Parser;
 use ApiSearch\Entity\Score;
 use ApiSearch\Service\ApiV1ScoreService;
 use DateTimeImmutable;
 use Exception;
+use Art4\JsonApiClient\Exception\InputException;
+use Art4\JsonApiClient\Exception\ValidationException;
+use Art4\JsonApiClient\Helper\Parser;
 use ApiSearch\Traits\ScoreTrait;
+use ApiSearch\Service\ApiV2ScoreService;
 use ApiSearch\Traits\FormatJsonTrait;
 
 /**
- * SearchController class.
+ * ScoreV2Controller class.
  */
-class ScoreV1Controller extends AbstractController
+class ScoreV2Controller extends AbstractController
 {
     use ScoreTrait, FormatJsonTrait;
 
@@ -49,36 +50,12 @@ class ScoreV1Controller extends AbstractController
         $this->validator = $validator;
     }
 
-    #[Route('/api/v1/score', name: 'api_score_v1', methods: ['GET'])]
-    public function scoreV1(Request $request, ApiV1ScoreService $apiScoreService): JsonResponse
+    #[Route('/api/v2/score', name: 'api_score_v2', methods: ['GET'])]
+    public function scoreV2(Request $request, ApiV2ScoreService $apiV2ScoreService)
     {
-        $term = $request->get('term');
+        $queryString = $request->server->all()['QUERY_STRING'];
 
-        $options = [
-            'sort'     => $request->get('sort'),
-            'order'    => $request->get('order', 'desc'),
-            'per_page' => $request->get('per_page', 30),
-            'page'     => $request->get('page', 1),
-        ];
-
-        if (!$term) {
-            $data = [
-                'errors' => [
-                    [
-                        'status' => 'error',
-                        'code'   => '400',
-                        'title'  => 'Search term must be provided, it is a required parameter.',
-                    ]
-                ],
-                'meta' => [
-                    'apiVersion' => 'V1',
-                ],
-            ];
-
-            return $this->formatJsonResponse($data, 400);
-        }
-
-        $scoreFromDB = $this->em->getRepository(Score::class)->findOneBy(['term' => $term]);
+        $scoreFromDB = $this->em->getRepository(Score::class)->findOneBy(['term' => $queryString]);
 
         if ($scoreFromDB) {
             $data = [
@@ -92,7 +69,7 @@ class ScoreV1Controller extends AbstractController
                     ],
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'V2',
                 ],
             ];
 
@@ -100,22 +77,20 @@ class ScoreV1Controller extends AbstractController
         }
 
         try {
-            $apiScoreData = $apiScoreService->getScoreFromProviders($term, $options);
+            $apiScoreData = $apiV2ScoreService->getScoreFromProviders($queryString);
         } catch (Exception $e) {
             $data = [
                 'errors' => [
-                    [
-                        'status' => 'error',
-                        'code'   => (string) $e->getCode(),
-                        'title'  => $e->getMessage(),
-                    ],
+                    'status'  => (string) $e->getCode(),
+                    'title'    => 'API error',
+                    'details'  => $e->getMessage(),
                 ],
                 'meta' => [
-                    'apiVersion' => 'V1',
+                    'apiVersion' => 'V2',
                 ],
             ];
 
-            return $this->formatJsonResponse($data, 400);
+            return $this->formatJsonResponse($data, $e->getCode());
         }
 
         $finalScore = $this->calculateOverallScore($apiScoreData);
@@ -123,7 +98,7 @@ class ScoreV1Controller extends AbstractController
         $dateTimeObj = new DateTimeImmutable();
         $score = new Score();
         $score->setScore($finalScore);
-        $score->setTerm($term);
+        $score->setTerm($queryString);
         $score->setCreatedAt($dateTimeObj);
 
         try {
@@ -135,27 +110,22 @@ class ScoreV1Controller extends AbstractController
                     'status' => 'error',
                     'code'   => $e->getCode(),
                     'title'  => $e->getMessage(),
-                ],
-                'meta' => [
-                    'apiVersion' => 'V1',
-                ],
+                ]
             ];
 
             return $this->formatJsonResponse($data, $e->getCode());
         }
 
         $data = [
-            'data' => [
-                'type' => 'score',
-                'id'   => (string) $score->getId(),
-                'attributes' => [
-                    'term'      => $score->getTerm(),
-                    'score'     => $score->getScore(),
-                    'createdAt' => $score->getCreatedAt(),
-                ],
+            'type' => 'score',
+            'id'   => (string) $score->getId(),
+            'attributes' => [
+                'term'      => $score->getTerm(),
+                'score'     => $score->getScore(),
+                'createdAt' => $score->getCreatedAt(),
             ],
             'meta' => [
-                'apiVersion' => 'V1',
+                'apiVersion' => 'V2',
             ],
         ];
 

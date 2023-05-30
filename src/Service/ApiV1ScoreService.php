@@ -7,10 +7,10 @@ namespace ApiSearch\Service;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
- * Class ApiScoreService
+ * Class ApiV1ScoreService
  * @package ApiSearch\Service
  */
-class ApiScoreService
+class ApiV1ScoreService
 {
     private const GITHUB = 'github';
 
