@@ -14,18 +14,17 @@ use ApiSearch\Entity\Score;
 use ApiSearch\Service\ApiV1ScoreService;
 use DateTimeImmutable;
 use Exception;
-use ApiSearch\Traits\ScoreTrait;
+use ApiSearch\Traits\TotalScoreTrait;
 use ApiSearch\Traits\FormatJsonTrait;
 use GuzzleHttp\Exception\GuzzleException;
 use OpenApi\Annotations as OA;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * SearchController class.
  */
 class ScoreV1Controller extends AbstractController
 {
-    use ScoreTrait, FormatJsonTrait;
+    use TotalScoreTrait, FormatJsonTrait;
 
     /**
      * @var EntityManagerInterface
@@ -50,10 +49,11 @@ class ScoreV1Controller extends AbstractController
     }
 
     #[Route('/api/v1/score', name: 'api_score_v1', methods: ['GET'])]
+
     /**
      * @OA\Get(
      *     description="ApiSearch endpoint for fetching score for given search term.<br/><br/>
-           Example of request uri: https://example.com/api/v1/score?<strong>term=php&sort=reactions-+1&order=desc&per_page=50&page=1</strong>"
+    Example of request uri: https://example.com/api/v1/score?<strong>term=php&sort=reactions-+1&order=desc&per_page=50&page=1</strong>"
      * )
      * @OA\Response(
      *      response="200",
@@ -125,11 +125,11 @@ class ScoreV1Controller extends AbstractController
      *
      *
      * @param Request $request
-     * @param ApiV1ScoreService $apiScoreService
+     * @param ApiV1ScoreService $apiV1ScoreService
      * @return JsonResponse
      * @throws GuzzleException
      */
-    public function scoreV1(Request $request, ApiV1ScoreService $apiScoreService)/* : JsonResponse*/
+    public function scoreV1(Request $request, ApiV1ScoreService $apiV1ScoreService)
     {
         $term = $request->get('term');
 
@@ -193,7 +193,7 @@ class ScoreV1Controller extends AbstractController
         }
 
         try {
-            $apiScoreData = $apiScoreService->getScoreFromProviders($term, $code, $options);
+            $apiScoreData = $apiV1ScoreService->getScoreFromProviders($term, $code, $options);
         } catch (Exception $e) {
             $data = [
                 'errors' => [

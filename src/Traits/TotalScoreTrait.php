@@ -2,13 +2,13 @@
 
 namespace ApiSearch\Traits;
 
-trait ScoreTrait {
+trait TotalScoreTrait {
 
     /**
      * @param array $apiScoreData
      * @return float
      */
-    public function calculateOverallScore(array $apiScoreData): float
+    private function calculateOverallScore(array $apiScoreData): float
     {
         $totalScore = 0;
         foreach ($apiScoreData as $apiScore) {

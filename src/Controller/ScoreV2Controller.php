@@ -14,7 +14,7 @@ use ApiSearch\Entity\Score;
 use ApiSearch\Service\ApiV1ScoreService;
 use DateTimeImmutable;
 use Exception;
-use ApiSearch\Traits\ScoreTrait;
+use ApiSearch\Traits\TotalScoreTrait;
 use ApiSearch\Service\ApiV2ScoreService;
 use ApiSearch\Traits\FormatJsonTrait;
 use GuzzleHttp\Exception\GuzzleException;
@@ -25,7 +25,7 @@ use OpenApi\Annotations as OA;
  */
 class ScoreV2Controller extends AbstractController
 {
-    use ScoreTrait, FormatJsonTrait;
+    use TotalScoreTrait, FormatJsonTrait;
 
     /**
      * @var EntityManagerInterface

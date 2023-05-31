@@ -6,12 +6,15 @@ namespace ApiSearch\Service;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use ApiSearch\Traits\CalculateScoreFromItems;
 
 /**
  * Class GithubApiService
  * @package ApiSearch\Service
  */
 class GithubApiService {
+
+    use CalculateScoreFromItems;
 
     private const SORT_OPTIONS = [
         'comments',
@@ -93,31 +96,6 @@ class GithubApiService {
         }
 
         return $apiData;
-    }
-
-    /**
-     * @param array $items
-     * @return float
-     */
-    private function getCalculatedScore(array $items): float
-    {
-        $reactionsSum = 0;
-        $totalCountSum = 0;
-
-        foreach ($items as $item) {
-            $reactionsSum += $item['reactions']['+1'];
-            $reactionsSum -= $item['reactions']['-1'];
-            $totalCountSum += $item['reactions']['total_count'];
-        }
-
-        if ($totalCountSum === 0) {
-            $totalCountSum = 1;
-        }
-
-        return (float) number_format(
-            $reactionsSum / $totalCountSum,
-            2
-        );
     }
 
     /**

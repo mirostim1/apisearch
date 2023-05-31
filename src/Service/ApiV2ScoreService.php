@@ -7,6 +7,7 @@ namespace ApiSearch\Service;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use ApiSearch\Interfaces\ApiV2ScoreInterface;
+use ApiSearch\Traits\CalculateScoreFromItems;
 use Exception;
 
 /**
@@ -15,6 +16,8 @@ use Exception;
  */
 class ApiV2ScoreService implements ApiV2ScoreInterface
 {
+    use CalculateScoreFromItems;
+
     private const GITHUB = 'github';
 
     // private const TWITTER = 'twitter';
@@ -95,35 +98,6 @@ class ApiV2ScoreService implements ApiV2ScoreInterface
             $apiData = json_decode($result->getBody()->getContents(), true);
         }
 
-        return $this->calculateScorePerProvider($apiData['items']);
-    }
-
-    /**
-     * @param array $items
-     * @return float
-     */
-    private function calculateScorePerProvider(array $items = []): float
-    {
-        if (!$items) {
-            $reactionsSum = 0;
-            $totalCountSum = 0;
-
-            foreach ($items as $item) {
-                $reactionsSum += $item['reactions']['+1'];
-                $reactionsSum -= $item['reactions']['-1'];
-                $totalCountSum += $item['reactions']['total_count'];
-            }
-
-            if ($totalCountSum === 0) {
-                $totalCountSum = 1;
-            }
-
-            return (float) number_format(
-                $reactionsSum / $totalCountSum,
-                2
-            );
-        }
-
-        return 0.00;
+        return $this->getCalculatedScore($apiData['items']);
     }
 }
