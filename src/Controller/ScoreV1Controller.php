@@ -18,6 +18,7 @@ use ApiSearch\Traits\ScoreTrait;
 use ApiSearch\Traits\FormatJsonTrait;
 use GuzzleHttp\Exception\GuzzleException;
 use OpenApi\Annotations as OA;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * SearchController class.
@@ -128,7 +129,7 @@ class ScoreV1Controller extends AbstractController
      * @return JsonResponse
      * @throws GuzzleException
      */
-    public function scoreV1(Request $request, ApiV1ScoreService $apiScoreService): JsonResponse
+    public function scoreV1(Request $request, ApiV1ScoreService $apiScoreService)/* : JsonResponse*/
     {
         $term = $request->get('term');
 
@@ -177,8 +178,22 @@ class ScoreV1Controller extends AbstractController
             return $this->formatJsonResponse($data, 200);
         }
 
+        $session = $request->getSession();
+        if ($session->has('github_code')) {
+            $code = $session->get('github_code');
+            $session->remove('github_code');
+        } else {
+            $uri = $this->getParameter('github_oauth2_code_endpoint') .
+                '?scope=' . $this->getParameter('github_user_email') .
+                '&client_id=' . $this->getParameter('github_oauth2_app_client_id');
+
+            $session->set('old_url_query', $request->query->all());
+
+            return $this->redirect($uri);
+        }
+
         try {
-            $apiScoreData = $apiScoreService->getScoreFromProviders($term, $options);
+            $apiScoreData = $apiScoreService->getScoreFromProviders($term, $code, $options);
         } catch (Exception $e) {
             $data = [
                 'errors' => [
@@ -238,5 +253,17 @@ class ScoreV1Controller extends AbstractController
         ];
 
         return $this->formatJsonResponse($data, 200);
+    }
+
+    #[Route('/api/v1/code', name: 'api_code_v1', methods: ['GET'])]
+    public function code(Request $request)
+    {
+        $session = $request->getSession();
+        $session->set('github_code', $request->get('code'));
+
+        $oldUrlQuery = $session->get('old_url_query');
+        $session->remove('old_url_query');
+
+        return $this->redirectToRoute('api_score_v1', $oldUrlQuery);
     }
 }

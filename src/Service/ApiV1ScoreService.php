@@ -22,28 +22,35 @@ class ApiV1ScoreService implements ApiV1ScoreInterface
      */
     private array $enabledApiProviders;
 
-    public function __construct(array $enabledApiProviders)
+    /**
+     * @var GithubApiService
+     */
+    private $githubApiService;
+
+    public function __construct(GithubApiService $githubApiService, array $enabledApiProviders)
     {
+        $this->githubApiService = $githubApiService;
         $this->enabledApiProviders = $enabledApiProviders;
     }
 
     /**
      * @param string $term
      * @param array $options
+     * @param string|null $code
      * @return array
      * @throws GuzzleException
      */
-    public function getScoreFromProviders(string $term, array $options = []): array
+    public function getScoreFromProviders(string $term, string $code, array $options = []): array
     {
         $dataFromProviders = [];
 
         foreach ($this->enabledApiProviders as $apiProviderData) {
             switch (key($apiProviderData)) {
                 case self::GITHUB:
-                    $githubService = new GithubApiService();
-                    $dataFromProviders[key($apiProviderData)] = $githubService->getTermScoreFromApi(
+                    $dataFromProviders[key($apiProviderData)] = $this->githubApiService->getTermScoreFromApi(
                         $term,
                         $apiProviderData[key($apiProviderData)], // API endpoint for GitHub from configuration
+                        $code,
                         $options
                     );
                     break;

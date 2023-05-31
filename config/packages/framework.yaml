@@ -18,6 +18,11 @@ framework:
     php_errors:
         log: true
 
+parameters:
+    github_user_email: "%env(GITHUB_USER_EMAIL)%"
+    github_oauth2_code_endpoint: "%env(GITHUB_OAUTH2_CODE_ENDPOINT)%"
+    github_oauth2_app_client_id: "%env(GITHUB_OAUTH2_APP_CLIENT_ID)%"
+
 when@test:
     framework:
         test: true

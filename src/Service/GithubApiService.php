@@ -13,8 +13,6 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class GithubApiService {
 
-    // private const GITHUB_TOKEN = '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';
-
     private const SORT_OPTIONS = [
         'comments',
         'reactions',
@@ -32,15 +30,26 @@ class GithubApiService {
     private const ORDER_OPTIONS = ['asc', 'desc'];
 
     /**
+     * @var GithubOAuth2Service
+     */
+    protected $githubOAuth2Service;
+
+    public function __construct(GithubOAuth2Service $githubOAuth2Service)
+    {
+        $this->githubOAuth2Service = $githubOAuth2Service;
+    }
+
+    /**
      * @param string $term
      * @param string $endpoint
+     * @param string $code
      * @param array $options
      * @return float
      * @throws GuzzleException
      */
-    public function getTermScoreFromApi(string $term, string $endpoint, array $options = []): float
+    public function getTermScoreFromApi(string $term, string $endpoint, string $code, array $options = []): float
     {
-        $apiData = $this->getApiData($term, $endpoint, $options);
+        $apiData = $this->getApiData($term, $endpoint, $code, $options);
 
         return $this->getCalculatedScore($apiData['items']);
     }
@@ -48,11 +57,12 @@ class GithubApiService {
     /**
      * @param string $term
      * @param string $endpoint
+     * @param string $code
      * @param array $options
      * @return array
      * @throws GuzzleException
      */
-    private function getApiData(string $term, string $endpoint, array $options = []): array
+    private function getApiData(string $term, string $endpoint, string $code, array $options = []): array
     {
         $client = new Client();
 
@@ -60,9 +70,11 @@ class GithubApiService {
 
         $uri .= $this->getOptionsString($options);
 
+        $token = $this->githubOAuth2Service->getPersonalToken($code);
+
         $headers = [
             'Accept'               => 'application/vnd.github+json',
-            // 'Authorization'     => 'Bearer ' . self::GITHUB_TOKEN,
+            'Authorization'        => 'Bearer ' . $token,
             'X-GitHub-Api-Version' => '2022-11-28'
         ];
 
