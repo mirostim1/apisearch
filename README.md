@@ -8,16 +8,17 @@ There are two versions of the API: v1 and v2, and the difference in usage will b
 - PHP >= 8.0, MySQL 8.0.xx, Composer 2.5.x, Git, Symfony CLI tool (Symfony binary)
 
 **Installation steps:**
-- git clone repo: git clone https://github.com/mirostim1/apisearch.git. It can be used main or master branch because they containt the same source code.
+- git clone repo: git clone https://github.com/mirostim1/apisearch.git. It can be used main or master branch because both contain the same source code.
 
-Then in your root project folder use this series of commands:
+Then in your root project folder use this series of commands via terminal:
 
 - _**composer install && composer update**_
-- _**php bin/console secrets: set DATABASE_URL**_ and type input: _**mysql://User:Password@127.0.0.1:3306/apisearch_production_db?serverVersion=8.0.32&charset=utf8mb4**_. Here change the word User with your database user, and Password with your user's password. Also, if you named the database differently in the previous step, then change _**apisearch_production_db**_ in the string as well
-- create database via MySQL database or by command: _**php bin/console doctrine:database:create**_ (db name e.g.: apisearch_production_db or some other name)
+- (copy and place prod.decrypt.private.php to folder: config/secrets/prod)
+- _**php bin/console secrets:set --local DATABASE_URL**_ and type input: _**mysql://User:Password@127.0.0.1:3306/apisearch_production_db?serverVersion=8.0.32&charset=utf8mb4**_. Here change the word User with your database user, and Password with your user's password. Also, if you named the database differently in the previous step, then change _**apisearch_production_db**_ in the string as well
+- create database via MySQL CLI or by command: _**php bin/console doctrine:database:create**_ (database with given name in previous step will be created)
 - **_php bin/console doctrine:migrations:migrate_**
-- _**symfony server: prod**_
-- ***symofny server:start*** (add flag -d if you want to start server in detached mode)
+- _**symfony server:prod**_
+- ***symfony server:start*** (add flag -d if you want to start server in the detached mode)
 
 **API usage**
 
