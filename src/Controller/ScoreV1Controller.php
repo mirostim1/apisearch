@@ -49,7 +49,6 @@ class ScoreV1Controller extends AbstractController
     }
 
     #[Route('/api/v1/score', name: 'api_score_v1', methods: ['GET'])]
-
     /**
      * @OA\Get(
      *     description="ApiSearch endpoint for fetching score for given search term.<br/><br/>
@@ -162,11 +161,12 @@ class ScoreV1Controller extends AbstractController
         if ($scoreFromDB) {
             $data = [
                 'data' => [
-                    'type' => 'score',
-                    'id'   => (string) $scoreFromDB->getId(),
+                    'type'    => 'score',
+                    'id'      => (string) $scoreFromDB->getId(),
+                    'message' => $scoreFromDB->getScore() >= 0 ? 'Rocks' : 'Sucks',
                     'attributes' => [
-                        'term'  => $scoreFromDB->getTerm(),
-                        'score' => $scoreFromDB->getScore(),
+                        'term'      => $scoreFromDB->getTerm(),
+                        'score'     => $scoreFromDB->getScore(),
                         'createdAt' => $scoreFromDB->getCreatedAt(),
                     ],
                 ],
@@ -239,8 +239,9 @@ class ScoreV1Controller extends AbstractController
 
         $data = [
             'data' => [
-                'type' => 'score',
-                'id'   => (string) $score->getId(),
+                'type'    => 'score',
+                'id'      => (string) $score->getId(),
+                'message' => $score->getScore() >= 0 ? 'Rocks' : 'Sucks',
                 'attributes' => [
                     'term'      => $score->getTerm(),
                     'score'     => $score->getScore(),

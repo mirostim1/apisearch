@@ -11,7 +11,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use ApiSearch\Entity\Score;
-use ApiSearch\Service\ApiV1ScoreService;
 use DateTimeImmutable;
 use Exception;
 use ApiSearch\Traits\TotalScoreTrait;
@@ -121,11 +120,12 @@ class ScoreV2Controller extends AbstractController
         if ($scoreFromDB) {
             $data = [
                 'data' => [
-                    'type' => 'score',
-                    'id'   => (string) $scoreFromDB->getId(),
+                    'type'    => 'score',
+                    'id'      => (string) $scoreFromDB->getId(),
+                    'message' => $scoreFromDB->getScore() >= 0 ? 'Rocks' : 'Sucks',
                     'attributes' => [
-                        'term'  => $scoreFromDB->getTerm(),
-                        'score' => $scoreFromDB->getScore(),
+                        'term'      => $scoreFromDB->getTerm(),
+                        'score'     => $scoreFromDB->getScore(),
                         'createdAt' => $scoreFromDB->getCreatedAt(),
                     ],
                 ],
@@ -178,8 +178,9 @@ class ScoreV2Controller extends AbstractController
         }
 
         $data = [
-            'type' => 'score',
-            'id'   => (string) $score->getId(),
+            'type'    => 'score',
+            'id'      => (string) $score->getId(),
+            'message' => $score->getScore() >= 0 ? 'Rocks' : 'Sucks',
             'attributes' => [
                 'term'      => $score->getTerm(),
                 'score'     => $score->getScore(),
